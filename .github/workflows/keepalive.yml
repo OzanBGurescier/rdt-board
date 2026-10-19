@@ -1,0 +1,22 @@
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: "17 14 */3 * *"   # every 3 days, 14:17 UTC
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read one task column
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          code=$(curl -s -o /tmp/out.json -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/board_columns?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "HTTP $code"; cat /tmp/out.json
+          test "$code" = "200"
